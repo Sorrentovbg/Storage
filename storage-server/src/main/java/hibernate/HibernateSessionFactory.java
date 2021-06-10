@@ -23,6 +23,7 @@ public class HibernateSessionFactory {
                 System.out.println("Исключение : " + e);
             }
         }
+
         return sessionFactory;
     }
 }

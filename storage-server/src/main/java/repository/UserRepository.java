@@ -7,5 +7,6 @@ public class UserRepository {
 
     public User findById(Long id){
         return HibernateSessionFactory.getSessionFactory().openSession().get(User.class, id);
+
     }
 }
