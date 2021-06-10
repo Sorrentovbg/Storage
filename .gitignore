@@ -1,0 +1,3 @@
+# Project exclude paths
+/storage-client/target/
+/storage-server/target/
