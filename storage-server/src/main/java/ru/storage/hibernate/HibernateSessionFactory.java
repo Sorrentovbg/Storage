@@ -1,9 +1,9 @@
-package hibernate;
+package ru.storage.hibernate;
 
-import entity.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import ru.storage.entity.User;
 
 
 public class HibernateSessionFactory {
