@@ -1,4 +1,4 @@
-package entity;
+package ru.storage.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
