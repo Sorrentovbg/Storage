@@ -10,6 +10,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import ru.storage.handler.AuthMessageHandler;
+import ru.storage.handler.CommandMessageHandler;
+import ru.storage.handler.FileMessageHandler;
+import ru.storage.handler.RegistrationMessageHandler;
 
 public class NettyServer {
 
@@ -33,6 +37,10 @@ public class NettyServer {
                             socketChannel.pipeline().addLast(
                                 new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                 new ObjectEncoder(),
+                                new RegistrationMessageHandler(),
+                                new AuthMessageHandler(),
+                                new CommandMessageHandler(),
+                                new FileMessageHandler(),
                                 new ServerHandler()
 
                             );

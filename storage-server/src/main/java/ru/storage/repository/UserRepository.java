@@ -6,6 +6,8 @@ import org.hibernate.query.Query;
 import ru.storage.entity.User;
 import ru.storage.hibernate.HibernateSessionFactory;
 
+import javax.persistence.NoResultException;
+
 public class UserRepository {
 
     public User findById(Long id){
@@ -13,14 +15,19 @@ public class UserRepository {
 
     }
 
-    public User findByUserName(String userName) {
-        System.out.println("Запрос в findUserByName");
+    public User findByUserName(String userName, String password) {
         Session session = HibernateSessionFactory.getSessionFactory().openSession();
-        String query = "from User where userName = :value";
+        System.out.println("Запрос в findUserByName");
+        String query = "from User where userName = :value and password = :pass";
         Query queryObject = session.createQuery(query,User.class);
         queryObject.setParameter("value", userName);
-        User user =(User) queryObject.getSingleResult();
-        System.out.println(user.getUserName());
+        queryObject.setParameter("pass", password);
+        User user = null;
+        try {
+            user = (User) queryObject.getSingleResult();
+        }catch (NoResultException e){
+
+        }
         return user;
     }
     public void save(User user){

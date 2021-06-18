@@ -1,6 +1,7 @@
 package ru.storage.service;
 
 import lombok.NoArgsConstructor;
+import ru.storage.StorageAuthMessage;
 import ru.storage.entity.User;
 import ru.storage.repository.UserRepository;
 
@@ -19,8 +20,13 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public User findUserByUserName(String login){
-       return userRepository.findByUserName(login);
+    public StorageAuthMessage findUserByUserName(String login, String password){
+        User user = userRepository.findByUserName(login, password);
+        if(user == null){
+            return new StorageAuthMessage("error");
+        }else {
+            return new StorageAuthMessage(user.getUserName(), user.getUserSrc());
+        }
     }
 
     public void save(String login, String password, String email, Path serverPath) throws IOException {

@@ -8,7 +8,7 @@
    <children>
       <Pane prefHeight="117.0" prefWidth="535.0" style="-fx-background-color: DarkBlue;">
          <children>
-            <Label fx:id="errorMessageField" layoutX="144.0" layoutY="27.0" prefHeight="0.0" prefWidth="252.0" text="Авторизация" textFill="#fffcfc">
+            <Label layoutX="144.0" layoutY="27.0" prefHeight="0.0" prefWidth="252.0" text="Авторизация" textFill="#fffcfc">
                <font>
                   <Font name="Lobster" size="41.0" />
                </font>
@@ -27,10 +27,10 @@
                </font></Label>
             <TextField fx:id="loginField" layoutX="135.0" layoutY="45.0" prefHeight="25.0" prefWidth="294.0" />
             <PasswordField fx:id="passField" layoutX="135.0" layoutY="86.0" prefHeight="25.0" prefWidth="294.0" />
-            <Button fx:id="okButton" onMouseClicked="#sendAuthMessage" layoutX="261.0" layoutY="133.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="69.0" text="OK" />
+            <Button fx:id="okButton" layoutX="261.0" layoutY="133.0" mnemonicParsing="false" onMouseClicked="#sendAuthMessage" prefHeight="25.0" prefWidth="69.0" text="OK" />
             <Button fx:id="cancelButton" layoutX="360.0" layoutY="133.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="69.0" text="Cancel" />
-            <Label layoutX="95.0" layoutY="14.0" prefHeight="17.0" prefWidth="294.0" />
-            <Button fx:id="registrationButton" onMouseClicked="#openRegistrationForm" layoutX="14.0" layoutY="133.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="106.0" text="Регистрация" />
+            <Button fx:id="registrationButton" layoutX="14.0" layoutY="133.0" mnemonicParsing="false" onMouseClicked="#openRegistrationForm" prefHeight="25.0" prefWidth="106.0" text="Регистрация" />
+            <Label fx:id="errorMessageField" alignment="CENTER" contentDisplay="CENTER" layoutX="135.0" layoutY="14.0" prefHeight="17.0" prefWidth="294.0" textAlignment="JUSTIFY" textFill="#f20404" />
          </children>
       </Pane>
    </children>

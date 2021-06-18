@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="storage-client" />
         <module name="storage-server" />
+        <module name="core-lib" />
       </profile>
     </annotationProcessing>
   </component>
