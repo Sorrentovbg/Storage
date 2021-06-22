@@ -50,6 +50,7 @@ private Button registrationButton;
                 System.out.println("Ожидаю authResult");
                 StorageAuthMessage authResult = (StorageAuthMessage) ois.readObject();
                 if(authResult.getError() == null){
+                    StorageClientController.getInstance().setUserLogin(authResult.getLogin());
                     System.out.println("if в authResult");
                     openMainWindow(authResult.getLogin());
                     System.out.println("authResult.getLogin = " + authResult.getLogin());

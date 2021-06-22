@@ -23,8 +23,7 @@ public class AuthMessageHandler extends SimpleChannelInboundHandler<StorageAuthM
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, StorageAuthMessage authMessage) throws Exception {
         System.out.println("Я попал в authHandler");
-//        User user = userService.findUserByUserName(authMessage.getLogin(), authMessage.getPassword());
-        StorageAuthMessage authMessageOut = userService.findUserByUserName(authMessage.getLogin(), authMessage.getPassword());
+        StorageAuthMessage authMessageOut = userService.findUserByUserNameAndPassword(authMessage.getLogin(), authMessage.getPassword());
         channelHandlerContext.write(authMessageOut);
         channelHandlerContext.flush();
     }

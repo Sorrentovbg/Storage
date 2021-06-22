@@ -15,7 +15,7 @@ public class UserRepository {
 
     }
 
-    public User findByUserName(String userName, String password) {
+    public User findByUserNameAndPassword(String userName, String password) {
         Session session = HibernateSessionFactory.getSessionFactory().openSession();
         System.out.println("Запрос в findUserByName");
         String query = "from User where userName = :value and password = :pass";
@@ -30,6 +30,23 @@ public class UserRepository {
         }
         return user;
     }
+
+    public User findByUserName(String userName) {
+        Session session = HibernateSessionFactory.getSessionFactory().openSession();
+        System.out.println("Запрос в findUserByName");
+        String query = "from User where userName = :value";
+        Query queryObject = session.createQuery(query,User.class);
+        queryObject.setParameter("value", userName);
+        User user = null;
+        try {
+            user = (User) queryObject.getSingleResult();
+        }catch (NoResultException e){
+
+        }
+        return user;
+    }
+
+
     public void save(User user){
         try {
             Session session = HibernateSessionFactory.getSessionFactory().openSession();

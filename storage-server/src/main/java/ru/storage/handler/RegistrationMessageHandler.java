@@ -16,7 +16,7 @@ public class RegistrationMessageHandler extends SimpleChannelInboundHandler<Stor
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, StorageRegistrationMessage regMessage) throws Exception {
-        userService.save(regMessage.getLogin(), regMessage.getPassword(), regMessage.getEmail(), mainSrcPath);
+        userService.save(regMessage.getLogin(), regMessage.getPassword(), regMessage.getEmail());
         System.out.println("Я попал в regHandler");
     }
 }

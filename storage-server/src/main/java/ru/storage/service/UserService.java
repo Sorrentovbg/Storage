@@ -2,6 +2,7 @@ package ru.storage.service;
 
 import lombok.NoArgsConstructor;
 import ru.storage.StorageAuthMessage;
+import ru.storage.StorageCommandMessage;
 import ru.storage.entity.User;
 import ru.storage.repository.UserRepository;
 
@@ -16,23 +17,34 @@ public class UserService {
 
     UserRepository userRepository = new UserRepository();
 
+    private static final Path mainPath = Paths.get("storage-server/src/main/resources");
+
     public User findUser(long id){
         return userRepository.findById(id);
     }
 
-    public StorageAuthMessage findUserByUserName(String login, String password){
-        User user = userRepository.findByUserName(login, password);
+    public StorageAuthMessage findUserByUserNameAndPassword(String login, String password){
+        User user = userRepository.findByUserNameAndPassword(login, password);
         if(user == null){
             return new StorageAuthMessage("error");
         }else {
             return new StorageAuthMessage(user.getUserName(), user.getUserSrc());
         }
     }
+//    public StorageAuthMessage findUserByUserName(String login){
+//        User user = userRepository.findByUserName(login);
+//        if(user == null){
+//            return new StorageAuthMessage("error");
+//        }else {
+//            return new StorageAuthMessage(user.getUserName(), user.getUserSrc());
+//        }
+//    }
 
-    public void save(String login, String password, String email, Path serverPath) throws IOException {
-        File dir = new File(serverPath.toString());
+    public void save(String login, String password, String email) throws IOException {
+        File dir = new File(mainPath.toString());
+
         File[] arrFiles = dir.listFiles();
-        String userSrc = serverPath.toString() + "/" + login;
+        String userSrc = mainPath.toString() + "\\" + login;
         if(!folderCheck(arrFiles, login)){
             Files.createDirectory(Paths.get(userSrc));
         }
@@ -53,4 +65,18 @@ public class UserService {
         }
         return check;
     }
+
+    public StorageCommandMessage getPath(String login){
+        String userSrc = mainPath.toString() + "\\" + login;
+        File[] arrFile = new File(userSrc).listFiles();
+        if(arrFile == null){
+            System.out.println("getPath methode File[] == null");
+        }else {
+            System.out.println("getPath methode File[] != null");
+        }
+        return new StorageCommandMessage("GETPATH",login,userSrc, arrFile);
+    }
+
+
+
 }

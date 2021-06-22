@@ -40,7 +40,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             System.out.println(regArray[1]);
             System.out.println(regArray[2]);
             System.out.println(regArray[3]);
-            userService.save(regArray[1],regArray[2],regArray[3],mainSrcPath);
+//            userService.save(regArray[1],regArray[2],regArray[3],mainSrcPath);
         }
         System.out.println("Что получил: " + str);
 //        User user = userService.findUser(1L);

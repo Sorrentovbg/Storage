@@ -15,6 +15,7 @@ public class StorageClientController {
     private static StorageClientController instance;
     ObjectEncoderOutputStream outputStream;
     ObjectDecoderInputStream inputStream;
+    String userLogin;
 
     private StorageClientController(){
         try {
