@@ -8,9 +8,10 @@ import java.io.File;
 @Data
 @AllArgsConstructor
 public class StorageCommandMessage implements Message{
-    private final String command;
-    private final String login;
+    private String command;
+    private String login;
     private String path;
+
     private File[] fileList;
 
     public StorageCommandMessage(String command, String login){

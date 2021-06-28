@@ -31,14 +31,6 @@ public class UserService {
             return new StorageAuthMessage(user.getUserName(), user.getUserSrc());
         }
     }
-//    public StorageAuthMessage findUserByUserName(String login){
-//        User user = userRepository.findByUserName(login);
-//        if(user == null){
-//            return new StorageAuthMessage("error");
-//        }else {
-//            return new StorageAuthMessage(user.getUserName(), user.getUserSrc());
-//        }
-//    }
 
     public void save(String login, String password, String email) throws IOException {
         File dir = new File(mainPath.toString());
@@ -66,7 +58,7 @@ public class UserService {
         return check;
     }
 
-    public StorageCommandMessage getPath(String login){
+    public StorageCommandMessage getMainPath(String login){
         String userSrc = mainPath.toString() + "\\" + login;
         File[] arrFile = new File(userSrc).listFiles();
         if(arrFile == null){
@@ -77,6 +69,22 @@ public class UserService {
         return new StorageCommandMessage("GETPATH",login,userSrc, arrFile);
     }
 
+    public StorageCommandMessage getPath(String login, String path){
+        File[] arrFile = new File(path).listFiles();
+        if(arrFile == null){
+            System.out.println("getPath methode File[] == null");
+        }else {
+            System.out.println("getPath methode File[] != null");
+        }
+        return new StorageCommandMessage("COMM", login, path, arrFile);
+    }
 
 
+    public void createFolder(String path) throws IOException {
+        Files.createDirectory(Paths.get(path));
+    }
+
+    public void delDirectory(String path) throws IOException {
+        Files.deleteIfExists(Paths.get(path));
+    }
 }

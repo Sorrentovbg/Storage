@@ -89,7 +89,6 @@ private Button registrationButton;
             Stage stage = new Stage();
             stage.setTitle("Storage " + login);
             stage.setScene(new Scene(root));
-//            stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
         }catch (Exception e){
             e.printStackTrace();

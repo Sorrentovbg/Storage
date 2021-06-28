@@ -4,27 +4,37 @@ import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.storage.ErrorMessage;
 import ru.storage.StorageClientController;
 import ru.storage.StorageCommandMessage;
+import ru.storage.StorageFileMessage;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class MainWindowController implements Initializable {
 
-    ObjectEncoderOutputStream ous = StorageClientController.getInstance().getOutputStream();
-    ObjectDecoderInputStream ois = StorageClientController.getInstance().getInputStream();
+    ObjectEncoderOutputStream objectEncoderOutputStream = StorageClientController.getInstance().getOutputStream();
+    ObjectDecoderInputStream objectDecoderInputStream = StorageClientController.getInstance().getInputStream();
 
-    String path = null;
+    static String path = null;
 
     @FXML
     public Label pathLabel;
@@ -43,37 +53,9 @@ public class MainWindowController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-//        try {
             System.out.println("Main window UserLogin = " + StorageClientController.getInstance().getUserLogin());
             String command = "GETPATH";
             navigate(command);
-//            ous.writeObject(new StorageCommandMessage("GETPATH", StorageClientController.getInstance().getUserLogin()));
-//            StorageCommandMessage scm = null;
-//            while(scm == null) {
-//                scm = (StorageCommandMessage) ois.readObject();
-//                path = scm.getPath();
-//            }
-//            fileList.getItems().clear();
-//            System.out.println("Path = " + path.toString());
-//            if(scm.getFileList() == null){
-//                pathLabel.setText(getShortPath(path, scm.getLogin()));
-//                fileList.getItems().add("..");
-//                pathLabel.setText(path.toString());
-//                pathLabel.setVisible(true);
-//                System.out.println("If in file list");
-//
-//            }else {
-//                pathLabel.setText(getShortPath(path, scm.getLogin()));
-//                System.out.println("else in file list");
-//                System.out.println("scm get list = " + scm.getFileList().length);
-//                fileList.getItems().add("..");
-//                for(File file: scm.getFileList()){
-//                    System.out.println(fileList.getItems().add(file.getName()));
-//                }
-//            }
-//        } catch (IOException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
     }
 
     public void uploadFile(ActionEvent actionEvent) {
@@ -92,11 +74,101 @@ public class MainWindowController implements Initializable {
 
     }
 
-    public void downloadFile(ActionEvent actionEvent) {
+    public void downloadFile(ActionEvent actionEvent) throws IOException {
+        String command = "DOWN";
+        String selectObject = fileList.getSelectionModel().getSelectedItem();
+        String pathToFile = path + "\\" + selectObject;
+        Stage stageDirectoryChooser = new Stage();
+
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Выберете папку");
+        File fileDirectory = directoryChooser.showDialog(stageDirectoryChooser);
+        String pathToDirectory = fileDirectory.getPath() + "\\";
+        System.out.println("Path to directory = " + pathToDirectory);
+
+        objectEncoderOutputStream.writeObject(new StorageFileMessage(command,selectObject,pathToFile));
+        objectEncoderOutputStream.flush();
+
+//        new Thread(() -> {
+            try {
+                String fileName;
+                String filePath;
+                int packages = -1;
+                long packagesCount = 0;
+                long byteAvailable = -1;
+                boolean lastPackage = true;
+                while (byteAvailable != 0) {
+                    Object object = objectDecoderInputStream.readObject();
+                    if (object.getClass().getSimpleName().equals("StorageFileMessage")) {
+                        StorageFileMessage inboundObject = (StorageFileMessage) object;
+                        int arraySize = inboundObject.getFileByte().length;
+                        packages = inboundObject.getPackageCount();
+                        fileName = inboundObject.getFileName();
+                        filePath = inboundObject.getFilePath();
+                        byteAvailable = inboundObject.getFileSize();
+//                        packagesCount = inboundObject.getFileSize();
+                        File file = new File(pathToDirectory + "\\" + fileName);
+                        byte[] fileByte = new byte[arraySize];
+                        if (!file.exists()) {
+                            System.out.println("First if filename = " + fileName);
+                            System.out.println("First if filepath = " + filePath);
+                            System.out.println("First if packages = " + inboundObject.getPackageCount());
+                            System.out.println("First if packageCount = " + packagesCount);
+                            System.out.println("First if fileByte size = " + fileByte.length);
+                            OutputStream outputStream = new FileOutputStream(pathToDirectory + "\\" + fileName, true);
+                            outputStream.write(inboundObject.getFileByte());
+                            outputStream.close();
+                            packagesCount++;
+                        } else {
+                            if (fileName.equals(inboundObject.getFileName()) && filePath.equals(inboundObject.getFilePath())) {
+                                System.out.println("Second if filename = " + fileName);
+                                System.out.println("Second if filePath = " + filePath);
+                                System.out.println("Second if packages = " + inboundObject.getPackageCount());
+                                System.out.println("Second if packageCount = " + packagesCount);
+                                System.out.println("Second if fileByte size = " + fileByte.length);
+//                            byte[] fileByte = new byte[fileSize];
+                                OutputStream fos = new FileOutputStream(pathToDirectory + "\\" + fileName, true);
+                                fos.write(inboundObject.getFileByte());
+                                packagesCount++;
+                                System.out.println("Package available = " + inboundObject.getFileSize());
+                                fos.close();
+//                                RandomAccessFile randomAccessFile = new RandomAccessFile(pathToDirectory + "\\" + fileName, "rw");
+//                                File addByteToFile = new File(pathToDirectory + "\\" + fileName);
+//                                System.out.println("File size addByteToFile.length before write byte = " + addByteToFile.length());
+//                                System.out.println("File size randomAccessFile.length before write byte = " + randomAccessFile.length());
+//                                System.out.println("File recived byte packageCount * arrayLength = " + (packagesCount * 1024));
+//                                long positionToSeek = randomAccessFile.length();
+//                                System.out.println("position seek = " + positionToSeek);
+//                                randomAccessFile.seek(positionToSeek);
+//                                randomAccessFile.write(inboundObject.getFileByte());
+
+//                                System.out.println("File size randomAccessFile.length after write byte = " + randomAccessFile.length());
+//                                randomAccessFile.close();
+//                                if(packages == packagesCount){
+//                                    lastPackage = false;
+//                                    System.out.println("If packages == packagesCount");
+//                                    break;
+//                                }
+                            }
+                        }
+                    }
+                }
+                } catch(ClassNotFoundException | IOException e){
+                    e.printStackTrace();
+                }
+//        }).start();
+
+
     }
 
-    public void delete(ActionEvent actionEvent) {
-
+    public void delete(ActionEvent actionEvent) throws IOException {
+        String comm = "DEL";
+        String selectedFolder = fileList.getSelectionModel().getSelectedItem();
+        String delDirectoryPath = path + "\\" + selectedFolder;
+        objectEncoderOutputStream.writeObject(new StorageCommandMessage(comm,
+                StorageClientController.getInstance().getUserLogin(),
+                delDirectoryPath));
+        navigate("LS");
     }
 
     public void refreshFolder(ActionEvent actionEvent) {
@@ -107,37 +179,77 @@ public class MainWindowController implements Initializable {
 
 
     public void createFolder(ActionEvent actionEvent) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/ru.storage/createFolderForm.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("Storage " + StorageClientController.getInstance().getUserLogin());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+            navigate("LS");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void navigate(String command) {
         try {
-            StorageCommandMessage stCommMess = null;
-            if(command.equals("LS") || command.equals("GETPATH")){
-                stCommMess = new StorageCommandMessage(command, StorageClientController.getInstance().getUserLogin());
+            StorageCommandMessage outCommMess = null;
+            if(command.equals("GETPATH")) {
+                outCommMess = new StorageCommandMessage(command,
+                        StorageClientController.getInstance().getUserLogin());
+            }else if(command.equals("LS")){
+                outCommMess = new StorageCommandMessage(command,
+                        StorageClientController.getInstance().getUserLogin(),
+                        path);
+            }else if(command.startsWith("..")){
+                String[] comeBackComm = command.split("_",2);
+                outCommMess = new StorageCommandMessage(comeBackComm[0],
+                        StorageClientController.getInstance().getUserLogin(),
+                        comeBackComm[1]);
+            }else if(command.startsWith("CD")){
+                String[] forward = command.split("_",2);
+                outCommMess = new StorageCommandMessage(forward[0],
+                        StorageClientController.getInstance().getUserLogin(),
+                        forward[1]);
             }
-            ous.writeObject(stCommMess);
-//            ous.writeObject(new StorageCommandMessage(command, StorageClientController.getInstance().getUserLogin()));
+            objectEncoderOutputStream.writeObject(outCommMess);
             StorageCommandMessage scm = null;
+            ErrorMessage errorMessage = null;
             while (scm == null) {
-                scm = (StorageCommandMessage) ois.readObject();
-                path = scm.getPath();
+               Object inboundObject = objectDecoderInputStream.readObject();
+               if(inboundObject.getClass().getSimpleName().equals("StorageCommandMessage")){
+                   scm = (StorageCommandMessage) inboundObject;
+                   path = scm.getPath();
+                   System.out.println("scm getPath = " + scm.getPath());
+               }else {
+                   errorMessage = (ErrorMessage) inboundObject;
+               }
             }
             fileList.getItems().clear();
-            System.out.println("Path = " + path.toString());
-            if (scm.getFileList() == null) {
-                pathLabel.setText(getShortPath(path, scm.getLogin()));
-                fileList.getItems().add("..");
-                pathLabel.setText(path.toString());
-                pathLabel.setVisible(true);
-                System.out.println("If in file list");
+            System.out.println("Path = " + path);
+            if(errorMessage != null){
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Warning");
+                alert.setHeaderText(null);
+                alert.setContentText(errorMessage.getErrorMessage());
+                alert.showAndWait();
+            }else {
+                if (scm.getFileList() == null) {
+                    pathLabel.setText(getShortPath(path, scm.getLogin()));
+                    fileList.getItems().add("..");
+                    pathLabel.setText(path.toString());
+                    pathLabel.setVisible(true);
+                    System.out.println("If in file list");
 
-            } else {
-                pathLabel.setText(getShortPath(path, scm.getLogin()));
-                System.out.println("else in file list");
-                System.out.println("scm get list = " + scm.getFileList().length);
-                fileList.getItems().add("..");
-                for(File file: scm.getFileList()){
-                    System.out.println(fileList.getItems().add(file.getName()));
+                } else {
+                    pathLabel.setText(getShortPath(path, scm.getLogin()));
+                    System.out.println("else in file list");
+                    System.out.println("scm get list = " + scm.getFileList().length);
+                    fileList.getItems().add("..");
+                    for (File file : scm.getFileList()) {
+                        System.out.println(fileList.getItems().add(file.getName()));
+                    }
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -145,35 +257,42 @@ public class MainWindowController implements Initializable {
         }
     }
 
+
+
     private String getShortPath(String path, String login) {
         String[] splitPath = path.split(login,2);
-        return "\\\\" + login + splitPath[1];
+        return "\\" + login + splitPath[1];
     }
 
 
     public void mouseClicked(MouseEvent mouseEvent) {
         int clickCount = mouseEvent.getClickCount();
+        String delimiter = "\\\\";
         if(clickCount == 2){
-            String s = fileList.getSelectionModel().getSelectedItem();
-            if(s.equals("..")){
-                try {
-                    ous.writeObject(new StorageCommandMessage("..", StorageClientController.getInstance().getUserLogin()));
+            String listFiles = fileList.getSelectionModel().getSelectedItem();
+            if(listFiles.equals("..")){
+                String[] comaBack = path.split(delimiter);
+                if(comaBack[comaBack.length-1].equals(StorageClientController.getInstance().getUserLogin())){
+                    navigate("LS");
+                }else {
+                    StringBuilder newPath = new StringBuilder(".._");
+                    for (int i = 0; i < comaBack.length-1; i++){
+                        if(i == comaBack.length-2){
+                            newPath.append(comaBack[i]);
+                        }else{
+                            newPath.append(comaBack[i] + "\\");
+                        }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    }
+                    System.out.println("mouseClick path = " + path);
+                    System.out.println("mouseClick out NewPath = " + newPath.toString());
+
+                    navigate(newPath.toString());
                 }
             }else{
-                try {
-                    ous.writeObject(new StorageCommandMessage("CD", StorageClientController.getInstance().getUserLogin()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                String newPath = path + "\\" + s;
-                System.out.println(newPath);
-//                Path p = Paths.get();
-                File file = new File(newPath);
-                boolean bool = file.isDirectory();
-                System.out.println(bool);
+                String newPath = path + "\\" + listFiles;
+                navigate("CD_" + newPath);
+                System.out.println("MouseClick (newPath) = " + newPath);
             }
         }
     }

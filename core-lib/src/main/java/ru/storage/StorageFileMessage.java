@@ -6,9 +6,16 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class StorageFileMessage implements Message{
+    private String command;
+    private String fileName;
+    private String filePath;
+    private int packageCount;
+    private byte[] fileByte;
+    private long fileSize;
 
-    private final String fileName;
-    private final String filePath;
-    private final byte[] fileByte;
-    private final Long fileSize;
+    public StorageFileMessage(String command,String fileName, String filePath){
+        this.command = command;
+        this.fileName = fileName;
+        this.filePath = filePath;
+    }
 }
