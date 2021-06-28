@@ -30,8 +30,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             System.out.println(authArray[0]);
             System.out.println(authArray[1]);
             System.out.println(authArray[2]);
-//            User user = userService.findUserByUserName(authArray[1], authArray[2]);
-//            System.out.println(user.getUserName());
+
 
         }
         if(str.startsWith("reg")){

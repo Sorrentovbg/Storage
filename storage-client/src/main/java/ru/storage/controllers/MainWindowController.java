@@ -22,10 +22,7 @@ import ru.storage.StorageClientController;
 import ru.storage.StorageCommandMessage;
 import ru.storage.StorageFileMessage;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -58,10 +55,10 @@ public class MainWindowController implements Initializable {
             navigate(command);
     }
 
-    public void uploadFile(ActionEvent actionEvent) {
+    public void uploadFile(ActionEvent actionEvent) throws IOException {
         Stage stage = new Stage();
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
+        fileChooser.setTitle("Выберите файл для загрузки");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Text Files", "*.txt"),
                 new FileChooser.ExtensionFilter("Image Files", "*.png","*.jpg","*.gif"),
@@ -71,6 +68,36 @@ public class MainWindowController implements Initializable {
         File file = fileChooser.showOpenDialog(stage);
         System.out.println(file.getPath());
         System.out.println(file.getName());
+
+        int arraySize;
+        int packages;
+        int count = 0;
+        if(file.isFile()){
+            System.out.println("isFile");
+            arraySize = getArraySize(file.length());
+            packages = getPackageCount(file.length(),arraySize);
+            String pathToFile = path + "\\" + file.getName();
+            FileInputStream fileInputStream = new FileInputStream(file);
+            byte[] fileByte = new byte[arraySize];
+            while(fileInputStream.available() > 0){
+                fileInputStream.read(fileByte);
+                long i = fileInputStream.available();
+                System.out.println("Packages = " + packages);
+                System.out.println("Count = " + count);
+                System.out.println("Read available = " + i);
+                objectEncoderOutputStream.writeObject(new StorageFileMessage("UPLOAD",
+                        file.getName(),
+                        pathToFile,
+                        packages,
+                        fileByte,
+                        i));
+                objectEncoderOutputStream.flush();
+                count++;
+            }
+            fileInputStream.close();
+        }
+        navigate("LS");
+
 
     }
 
@@ -89,14 +116,12 @@ public class MainWindowController implements Initializable {
         objectEncoderOutputStream.writeObject(new StorageFileMessage(command,selectObject,pathToFile));
         objectEncoderOutputStream.flush();
 
-//        new Thread(() -> {
             try {
                 String fileName;
                 String filePath;
                 int packages = -1;
                 long packagesCount = 0;
                 long byteAvailable = -1;
-                boolean lastPackage = true;
                 while (byteAvailable != 0) {
                     Object object = objectDecoderInputStream.readObject();
                     if (object.getClass().getSimpleName().equals("StorageFileMessage")) {
@@ -106,49 +131,19 @@ public class MainWindowController implements Initializable {
                         fileName = inboundObject.getFileName();
                         filePath = inboundObject.getFilePath();
                         byteAvailable = inboundObject.getFileSize();
-//                        packagesCount = inboundObject.getFileSize();
                         File file = new File(pathToDirectory + "\\" + fileName);
                         byte[] fileByte = new byte[arraySize];
                         if (!file.exists()) {
-                            System.out.println("First if filename = " + fileName);
-                            System.out.println("First if filepath = " + filePath);
-                            System.out.println("First if packages = " + inboundObject.getPackageCount());
-                            System.out.println("First if packageCount = " + packagesCount);
-                            System.out.println("First if fileByte size = " + fileByte.length);
                             OutputStream outputStream = new FileOutputStream(pathToDirectory + "\\" + fileName, true);
                             outputStream.write(inboundObject.getFileByte());
                             outputStream.close();
                             packagesCount++;
                         } else {
                             if (fileName.equals(inboundObject.getFileName()) && filePath.equals(inboundObject.getFilePath())) {
-                                System.out.println("Second if filename = " + fileName);
-                                System.out.println("Second if filePath = " + filePath);
-                                System.out.println("Second if packages = " + inboundObject.getPackageCount());
-                                System.out.println("Second if packageCount = " + packagesCount);
-                                System.out.println("Second if fileByte size = " + fileByte.length);
-//                            byte[] fileByte = new byte[fileSize];
                                 OutputStream fos = new FileOutputStream(pathToDirectory + "\\" + fileName, true);
                                 fos.write(inboundObject.getFileByte());
                                 packagesCount++;
-                                System.out.println("Package available = " + inboundObject.getFileSize());
                                 fos.close();
-//                                RandomAccessFile randomAccessFile = new RandomAccessFile(pathToDirectory + "\\" + fileName, "rw");
-//                                File addByteToFile = new File(pathToDirectory + "\\" + fileName);
-//                                System.out.println("File size addByteToFile.length before write byte = " + addByteToFile.length());
-//                                System.out.println("File size randomAccessFile.length before write byte = " + randomAccessFile.length());
-//                                System.out.println("File recived byte packageCount * arrayLength = " + (packagesCount * 1024));
-//                                long positionToSeek = randomAccessFile.length();
-//                                System.out.println("position seek = " + positionToSeek);
-//                                randomAccessFile.seek(positionToSeek);
-//                                randomAccessFile.write(inboundObject.getFileByte());
-
-//                                System.out.println("File size randomAccessFile.length after write byte = " + randomAccessFile.length());
-//                                randomAccessFile.close();
-//                                if(packages == packagesCount){
-//                                    lastPackage = false;
-//                                    System.out.println("If packages == packagesCount");
-//                                    break;
-//                                }
                             }
                         }
                     }
@@ -156,9 +151,6 @@ public class MainWindowController implements Initializable {
                 } catch(ClassNotFoundException | IOException e){
                     e.printStackTrace();
                 }
-//        }).start();
-
-
     }
 
     public void delete(ActionEvent actionEvent) throws IOException {
@@ -295,5 +287,26 @@ public class MainWindowController implements Initializable {
                 System.out.println("MouseClick (newPath) = " + newPath);
             }
         }
+    }
+    private int getPackageCount(long length, int arraySize) {
+        int count;
+        count = (int) (length / arraySize);
+        if(length%arraySize != 0){
+            count++;
+        }
+        return count;
+    }
+
+    private int getArraySize(long length) {
+        int sizeMB = 1_000_000;
+        int sizeOnePackage = 1_024;
+        int arrayLength;
+        if(length > sizeMB){
+            arrayLength = sizeOnePackage;
+        }else {
+            arrayLength = (int) length;
+        }
+
+        return arrayLength;
     }
 }
