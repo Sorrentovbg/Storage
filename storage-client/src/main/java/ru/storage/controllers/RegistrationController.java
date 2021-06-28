@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import ru.storage.StorageClientController;
+import ru.storage.StorageRegistrationMessage;
 
 import java.io.IOException;
 
@@ -30,7 +31,8 @@ public class RegistrationController {
     public void sendRegForm(ActionEvent actionEvent) throws IOException {
         StringBuilder regForm = new StringBuilder("reg_");
         regForm.append(loginField.getText() + "_" + passField.getText() + "_" + emailField.getText());
-        ous.writeObject(regForm.toString());
+        StorageRegistrationMessage regMessage = new StorageRegistrationMessage(loginField.getText(), passField.getText(),emailField.getText());
+        ous.writeObject(regMessage);
         loginField.clear();
         passField.clear();
         emailField.clear();

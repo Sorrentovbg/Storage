@@ -13,6 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.storage.StorageAuthMessage;
 import ru.storage.StorageClientController;
 
 import java.io.IOException;
@@ -42,10 +43,30 @@ private Button registrationButton;
 
 
     public void sendAuthMessage(MouseEvent mouseEvent) throws IOException {
-        StringBuilder authMessage = new StringBuilder("auth_");
-        authMessage.append(loginField.getText() + "_");
-        authMessage.append(passField.getText());
-        ous.writeObject(authMessage.toString());
+        StorageAuthMessage authMessage = new StorageAuthMessage(loginField.getText(),passField.getText());
+        ous.writeObject(authMessage);
+        while (true){
+            try {
+                System.out.println("Ожидаю authResult");
+                StorageAuthMessage authResult = (StorageAuthMessage) ois.readObject();
+                if(authResult.getError() == null){
+                    StorageClientController.getInstance().setUserLogin(authResult.getLogin());
+                    System.out.println("if в authResult");
+                    openMainWindow(authResult.getLogin());
+                    System.out.println("authResult.getLogin = " + authResult.getLogin());
+                    break;
+                }
+                else if(authResult.getError().equals("error")){
+                    System.out.println("Else в authResult");
+                    errorMessageField.setText("Неверный Логин или Пароль");
+                    errorMessageField.setVisible(true);
+                    break;
+                }
+
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void openRegistrationForm(MouseEvent mouseEvent) {
@@ -55,6 +76,19 @@ private Button registrationButton;
             stage.setTitle("Registration");
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void openMainWindow(String login) {
+        cancelButton.getScene().getWindow().hide();
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/ru.storage/mainWindow.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("Storage " + login);
+            stage.setScene(new Scene(root));
             stage.showAndWait();
         }catch (Exception e){
             e.printStackTrace();

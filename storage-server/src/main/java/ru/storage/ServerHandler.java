@@ -2,7 +2,6 @@ package ru.storage;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import ru.storage.entity.User;
 import ru.storage.service.UserService;
 
 import java.nio.file.Path;
@@ -31,8 +30,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             System.out.println(authArray[0]);
             System.out.println(authArray[1]);
             System.out.println(authArray[2]);
-            User user = userService.findUserByUserName(authArray[1]);
-            System.out.println(user.getUserName());
+//            User user = userService.findUserByUserName(authArray[1], authArray[2]);
+//            System.out.println(user.getUserName());
 
         }
         if(str.startsWith("reg")){
@@ -41,7 +40,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             System.out.println(regArray[1]);
             System.out.println(regArray[2]);
             System.out.println(regArray[3]);
-            userService.save(regArray[1],regArray[2],regArray[3],mainSrcPath);
+//            userService.save(regArray[1],regArray[2],regArray[3],mainSrcPath);
         }
         System.out.println("Что получил: " + str);
 //        User user = userService.findUser(1L);
